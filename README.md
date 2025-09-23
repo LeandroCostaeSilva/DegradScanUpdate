@@ -28,3 +28,6 @@ Continue building your app on:
 2. Deploy your chats from the v0 interface
 3. Changes are automatically pushed to this repository
 4. Vercel deploys the latest version from this repository
+
+## Perfil do desenvolvedor:
+[![Leandro Viana](https://media.licdn.com/dms/image/v2/C4E03AQHfGptVFnWfUg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1541546765710?e=1761782400&v=beta&t=o-zDUCl5gX4AyYEZdKV0QKyn7l4QdAoppf0g0MzaCio)](https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile)
