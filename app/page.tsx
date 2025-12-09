@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase"
 import { generateDegradationReportDefinitive } from "./actions/generate-report-definitive"
 import { generatePDF } from "./utils/pdf-generator"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface DegradationProduct {
   substance: string
@@ -28,13 +29,14 @@ interface DegradationReport {
 }
 
 export default function DegradScanApp() {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [report, setReport] = useState<DegradationReport | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cacheStatus, setCacheStatus] = useState<string | null>(null)
   const [isPdfGenerating, setIsPdfGenerating] = useState(false)
-  const [refMeta, setRefMeta] = useState<Record<number, { title: string; authors: string[]; url: string; journal?: string; year?: number | string; pubmedUrl?: string }>>({})
+  const [refMeta, setRefMeta] = useState<{ [key: number]: { title: string; authors: string[]; url: string; journal?: string; year?: number | string; pubmedUrl?: string } }>({})
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [selectedSuggestion, setSelectedSuggestion] = useState<string>("")
@@ -63,11 +65,21 @@ export default function DegradScanApp() {
           body: JSON.stringify({ references: result.references }),
         })
         const j = await r.json()
-        const map: Record<number, { title: string; authors: string[]; url: string; journal?: string; year?: number | string; pubmedUrl?: string }> = {}
-        (j.items || []).forEach((it: any, i: number) => {
-          map[i] = { title: it.title || result.references[i], authors: it.authors || [], url: it.url || "", journal: it.journal || "", year: it.year || "", pubmedUrl: it.pubmedUrl || "" }
-        })
-        setRefMeta(map)
+        const items = Array.isArray(j.items) ? j.items : []
+        const mapObj = Object.fromEntries(
+          items.map((it: any, i: number) => [
+            i,
+            {
+              title: it.title || result.references[i],
+              authors: it.authors || [],
+              url: it.url || "",
+              journal: it.journal || "",
+              year: it.year || "",
+              pubmedUrl: it.pubmedUrl || "",
+            },
+          ]),
+        ) as any
+        setRefMeta(mapObj)
       } catch {}
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao gerar relatório. Tente novamente.")
@@ -116,22 +128,22 @@ export default function DegradScanApp() {
     supabase.auth.getSession().then(({ data }) => {
       setUserEmail(data.session?.user?.email || null)
       if (!data.session) {
-        window.location.href = "/login"
+        router.replace("/login")
       }
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setUserEmail(session?.user?.email || null)
       if (!session) {
-        window.location.href = "/login"
+        router.replace("/login")
       }
     })
     return () => sub.subscription.unsubscribe()
-  }, [])
+  }, [router])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setUserEmail(null)
-    window.location.href = "/login"
+    router.replace("/login")
   }
   useEffect(() => {
     const controller = new AbortController()

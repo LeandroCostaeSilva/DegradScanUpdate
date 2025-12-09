@@ -19,7 +19,7 @@ interface DegradationReport {
 
 export async function generateDegradationReportDefinitive(substanceName: string): Promise<DegradationReport> {
   const startTime = Date.now()
-  const headersList = headers()
+  const headersList = await headers()
   const userAgent = headersList.get("user-agent") || ""
   const forwardedFor = headersList.get("x-forwarded-for")
   const userIP = forwardedFor ? forwardedFor.split(",")[0] : headersList.get("x-real-ip") || "unknown"
