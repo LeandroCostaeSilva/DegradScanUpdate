@@ -1,8 +1,8 @@
 "use server"
 
-import { generateText } from "ai"
-import { google } from "@ai-sdk/google"
 import { supabaseServer } from "@/lib/supabase-server"
+import { getOpenRouterApiKey, getForceAI } from "@/lib/env"
+import { fetchOpenRouterReportDeep } from "@/lib/openrouter"
 import { headers } from "next/headers"
 
 interface DegradationProduct {
@@ -27,6 +27,19 @@ export async function generateDegradationReportDefinitive(substanceName: string)
   console.log(`🔍 [SEARCH] Iniciando pesquisa para: ${substanceName}`)
 
   try {
+    const forceAI = getForceAI()
+
+    if (forceAI && getOpenRouterApiKey()) {
+      console.log(`🧠 [AI] Forçando consulta OpenRouter (ignorando cache/banco)...`)
+      const report = await generateReportFromAI(substanceName)
+      const cacheKey = `substance_${substanceName.toLowerCase().replace(/\s+/g, "_")}`
+      await saveDataDefinitive(substanceName, report, "openrouter")
+      await setCacheDefinitive(cacheKey, substanceName, report, "openrouter")
+      await logSearchDefinitive(substanceName, userIP, userAgent, "openrouter", false)
+      console.log(`✅ [SUCCESS] Pesquisa concluída (forçada via OpenRouter)`)
+      return report
+    }
+
     // 1. VERIFICAR CACHE PRIMEIRO (PRIORIDADE MÁXIMA)
     const cacheKey = `substance_${substanceName.toLowerCase().replace(/\s+/g, "_")}`
     console.log(`🔍 [CACHE] Verificando cache para chave: ${cacheKey}`)
@@ -68,10 +81,10 @@ export async function generateDegradationReportDefinitive(substanceName: string)
     let report: DegradationReport
     let responseSource: string
 
-    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      console.log(`🧠 [AI] Consultando Gemini AI...`)
+    if (getOpenRouterApiKey()) {
+      console.log(`🧠 [AI] Consultando OpenRouter...`)
       report = await generateReportFromAI(substanceName)
-      responseSource = "gemini"
+      responseSource = "openrouter"
     } else {
       console.log(`📋 [MOCK] Usando dados mock (API key não disponível)`)
       report = getMockData(substanceName)
@@ -242,42 +255,8 @@ async function getSubstanceFromDatabase(substanceName: string): Promise<Degradat
 }
 
 async function generateReportFromAI(substanceName: string): Promise<DegradationReport> {
-  const prompt = `Como um especialista em química analítica sênior, me apresente de forma objetiva em formato de tabela os produtos de degradação da ${substanceName}, organizando como atributos os nomes das substâncias formadas, a via de degradação química, as condições ambientais que a favorecem e os dados de toxicidade relatados na literatura científica para esse produto de degradação formado. Ao final, embaixo da tabela, apresente as referências bibliográficas dessas informações apresentadas.
-
-Por favor, formate sua resposta em JSON com a seguinte estrutura:
-{
-  "products": [
-    {
-      "substance": "nome da substância formada",
-      "degradationRoute": "via de degradação química",
-      "environmentalConditions": "condições ambientais que favorecem",
-      "toxicityData": "dados de toxicidade relatados"
-    }
-  ],
-  "references": [
-    "referência bibliográfica 1",
-    "referência bibliográfica 2"
-  ]
-}`
-
-  const { text } = await generateText({
-    model: google("gemini-2.0-flash-exp", {
-      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    }),
-    prompt,
-    temperature: 0.3,
-  })
-
-  // Try to extract JSON from the response
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (jsonMatch) {
-    const jsonStr = jsonMatch[0]
-    const parsedData = JSON.parse(jsonStr)
-    return parsedData
-  }
-
-  // Fallback: parse the text response manually
-  return parseTextResponse(text, substanceName)
+  const result = await fetchOpenRouterReportDeep(substanceName)
+  return result
 }
 
 function getMockData(substanceName: string): DegradationReport {

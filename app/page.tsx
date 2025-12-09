@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,8 +10,10 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Search, Download, FileText, Loader2, Sparkles, Zap } from "lucide-react"
 import { MoleculeLogo } from "./components/MoleculeLogo"
+import { supabase } from "@/lib/supabase"
 import { generateDegradationReportDefinitive } from "./actions/generate-report-definitive"
 import { generatePDF } from "./utils/pdf-generator"
+import Link from "next/link"
 
 interface DegradationProduct {
   substance: string
@@ -32,9 +34,15 @@ export default function DegradScanApp() {
   const [error, setError] = useState<string | null>(null)
   const [cacheStatus, setCacheStatus] = useState<string | null>(null)
   const [isPdfGenerating, setIsPdfGenerating] = useState(false)
+  const [refMeta, setRefMeta] = useState<Record<number, { title: string; authors: string[]; url: string; journal?: string; year?: number | string; pubmedUrl?: string }>>({})
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [selectedSuggestion, setSelectedSuggestion] = useState<string>("")
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
   const handleSearch = async () => {
-    if (!searchTerm.trim()) return
+    const term = selectedSuggestion || searchTerm
+    if (!term.trim()) return
 
     setIsLoading(true)
     setError(null)
@@ -43,11 +51,24 @@ export default function DegradScanApp() {
     const startTime = Date.now()
 
     try {
-      const result = await generateDegradationReportDefinitive(searchTerm)
+      const result = await generateDegradationReportDefinitive(term)
       const processingTime = Date.now() - startTime
 
       setReport(result)
       setCacheStatus(`Processado em ${processingTime}ms`)
+      try {
+        const r = await fetch("/api/refmeta", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ references: result.references }),
+        })
+        const j = await r.json()
+        const map: Record<number, { title: string; authors: string[]; url: string; journal?: string; year?: number | string; pubmedUrl?: string }> = {}
+        (j.items || []).forEach((it: any, i: number) => {
+          map[i] = { title: it.title || result.references[i], authors: it.authors || [], url: it.url || "", journal: it.journal || "", year: it.year || "", pubmedUrl: it.pubmedUrl || "" }
+        })
+        setRefMeta(map)
+      } catch {}
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao gerar relatório. Tente novamente.")
       console.error("Error generating report:", err)
@@ -77,6 +98,69 @@ export default function DegradScanApp() {
     }
   }
 
+  const normalize = (s: string) => s.toLowerCase().trim()
+  const getRefIndexForProduct = (product: DegradationProduct, refs: string[], fallbackIndex: number) => {
+    if (!refs || refs.length === 0) return null
+    const pSub = normalize(product.substance)
+    const pTox = normalize(product.toxicityData)
+    const foundIdx = refs.findIndex((r) => {
+      const nr = normalize(r)
+      return nr.includes(pSub) || (pTox.length > 0 && nr.includes(pTox.slice(0, Math.min(24, pTox.length))))
+    })
+    if (foundIdx !== -1) return foundIdx + 1
+    const fi = Math.min(fallbackIndex, refs.length - 1)
+    return fi >= 0 ? fi + 1 : null
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUserEmail(data.session?.user?.email || null)
+      if (!data.session) {
+        window.location.href = "/login"
+      }
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserEmail(session?.user?.email || null)
+      if (!session) {
+        window.location.href = "/login"
+      }
+    })
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUserEmail(null)
+    window.location.href = "/login"
+  }
+  useEffect(() => {
+    const controller = new AbortController()
+    const run = async () => {
+      const q = searchTerm.trim()
+      if (q.length < 2) {
+        setSuggestions([])
+        return
+      }
+      try {
+        setSuggestionsLoading(true)
+        const resp = await fetch(`/api/pubchem-autocomplete?type=compound&q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        })
+        const data = await resp.json()
+        setSuggestions(Array.isArray(data.items) ? data.items.slice(0, 10) : [])
+      } catch {
+        setSuggestions([])
+      } finally {
+        setSuggestionsLoading(false)
+      }
+    }
+    const t = setTimeout(run, 250)
+    return () => {
+      clearTimeout(t)
+      controller.abort()
+    }
+  }, [searchTerm])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Background Pattern */}
@@ -89,7 +173,7 @@ export default function DegradScanApp() {
 
       <div className="relative z-10 container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 relative">
           <div className="flex items-center justify-center gap-4 mb-6">
             <MoleculeLogo />
             <div>
@@ -132,6 +216,16 @@ export default function DegradScanApp() {
               P&D Farmacêutico
             </Badge>
           </div>
+          <div className="absolute right-0 top-0 flex items-center gap-3">
+            {userEmail ? (
+              <>
+                <span className="text-slate-400 text-sm">{userEmail}</span>
+                <Button variant="outline" className="border-slate-600 text-slate-300" onClick={handleLogout}>Sair</Button>
+              </>
+            ) : (
+              <Link href="/login" className="text-blue-400 hover:text-blue-300 text-sm">Entrar</Link>
+            )}
+          </div>
         </div>
 
         {/* Search Section */}
@@ -165,7 +259,7 @@ export default function DegradScanApp() {
               />
               <Button
                 onClick={handleSearch}
-                disabled={isLoading || !searchTerm.trim()}
+                disabled={isLoading || !(selectedSuggestion || searchTerm.trim())}
                 className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
               >
                 {isLoading ? (
@@ -181,6 +275,47 @@ export default function DegradScanApp() {
                 )}
               </Button>
             </div>
+            {/* Autocomplete suggestions */}
+            {suggestionsLoading && (
+              <p className="mt-3 text-xs text-slate-400">Consultando PubChem…</p>
+            )}
+            {suggestions.length > 0 && (
+              <div className="mt-4 rounded-lg border border-slate-700/50 bg-slate-900/40">
+                <div className="px-4 py-2 text-xs text-slate-400">Sugestões (PubChem)</div>
+                <ul className="max-h-48 overflow-auto divide-y divide-slate-700/40">
+                  {suggestions.map((s, i) => {
+                    const checked = selectedSuggestion.toLowerCase() === s.toLowerCase()
+                    return (
+                      <li key={i} className="flex items-center gap-3 px-4 py-2">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSuggestion(s)
+                              setSearchTerm(s)
+                            } else {
+                              setSelectedSuggestion("")
+                            }
+                          }}
+                          className="accent-blue-500"
+                        />
+                        <button
+                          type="button"
+                          className="text-slate-200 text-sm hover:text-blue-400"
+                          onClick={() => {
+                            setSelectedSuggestion(s)
+                            setSearchTerm(s)
+                          }}
+                        >
+                          {s}
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -229,9 +364,17 @@ export default function DegradScanApp() {
                   </>
                 )}
               </Button>
+              <Link
+                href={`/propriedades?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                prefetch={false}
+                className="ml-3 px-4 py-2 border border-slate-600 text-slate-300 rounded-lg hover:bg-slate-700"
+              >
+                Gerar dados físico-químicos
+              </Link>
             </CardHeader>
             <CardContent>
-              {/* Degradation Products Table */}
               <div className="overflow-x-auto mb-8 rounded-lg border border-slate-700">
                 <table className="w-full border-collapse">
                   <thead>
@@ -251,45 +394,87 @@ export default function DegradScanApp() {
                     </tr>
                   </thead>
                   <tbody>
-                    {report.products.map((product, index) => (
-                      <tr
-                        key={index}
-                        className={`${
-                          index % 2 === 0 ? "bg-slate-800/30" : "bg-slate-800/50"
-                        } hover:bg-slate-700/30 transition-colors`}
-                      >
-                        <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">{product.substance}</td>
-                        <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">
-                          {product.degradationRoute}
-                        </td>
-                        <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">
-                          {product.environmentalConditions}
-                        </td>
-                        <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">
-                          {product.toxicityData}
-                        </td>
-                      </tr>
-                    ))}
+                    {report.products.map((product, index) => {
+                      const refIdx = getRefIndexForProduct(product, report.references, index)
+                      return (
+                        <tr
+                          key={index}
+                          className={`${
+                            index % 2 === 0 ? "bg-slate-800/30" : "bg-slate-800/50"
+                          } hover:bg-slate-700/30 transition-colors`}
+                        >
+                          <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">{product.substance}</td>
+                          <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">
+                            {product.degradationRoute}
+                          </td>
+                          <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">
+                            {product.environmentalConditions}
+                          </td>
+                          <td className="border-b border-slate-700/50 px-6 py-4 text-slate-300">
+                            {product.toxicityData}
+                            {refIdx ? (
+                              <a href={`#ref-${refIdx}`}>
+                                <sup className="ml-1 text-xs text-blue-400">{refIdx}</sup>
+                              </a>
+                            ) : null}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
 
               <Separator className="my-8 bg-slate-700" />
 
-              {/* References Section */}
               <div>
                 <h3 className="text-lg font-semibold mb-6 text-slate-100 flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                   Referências Bibliográficas
                 </h3>
-                <div className="space-y-3">
-                  {report.references.map((reference, index) => (
-                    <div key={index} className="flex gap-3">
-                      <span className="text-blue-400 font-medium min-w-[2rem]">{index + 1}.</span>
-                      <p className="text-sm text-slate-300 leading-relaxed">{reference}</p>
-                    </div>
-                  ))}
-                </div>
+                <ol className="list-decimal pl-6 space-y-2">
+                  {report.references.map((reference, index) => {
+                    const meta = refMeta[index] || {}
+                    const title = meta.title || reference
+                    const authors = Array.isArray(meta.authors) && meta.authors.length > 0 ? meta.authors.join(", ") : ""
+                    const url = meta.url || ""
+                    const pubmedUrl = meta.pubmedUrl || ""
+                    const journal = meta.journal || ""
+                    const year = meta.year ? String(meta.year) : ""
+
+                    const doiMatch = reference.match(/10\.[0-9]{4,9}\/[\-._;()\/:A-Z0-9]+/i)
+                    const pmidMatch = reference.match(/pmid\s*:\s*(\d+)/i) || reference.match(/\b(\d{7,8})\b/)
+                    const idText = doiMatch ? `DOI: ${doiMatch[0]}` : pmidMatch ? `PMID: ${pmidMatch[1] || pmidMatch[0]}` : ""
+
+                    const showId = idText && idText.toLowerCase() !== (title || "").toLowerCase()
+
+                    return (
+                      <li key={index} id={`ref-${index + 1}`} className="leading-relaxed">
+                        {url ? (
+                          <a href={url} target="_blank" rel="noreferrer" className="text-slate-200 hover:text-blue-400 text-sm">
+                            {title}
+                          </a>
+                        ) : (
+                          <span className="text-slate-200 text-sm">{title}</span>
+                        )}
+                        {authors ? <div className="text-slate-400 text-sm">{authors}</div> : null}
+                        {(journal || year) ? (
+                          <div className="text-slate-500 text-xs">{journal}{journal && year ? ", " : ""}{year}</div>
+                        ) : null}
+                        {showId ? <div className="text-slate-400 text-xs">{idText}</div> : null}
+                        {(pubmedUrl || url) ? (
+                          <div className="text-slate-400 text-xs">
+                            disponível em: {pubmedUrl ? (
+                              <a href={pubmedUrl} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300">{pubmedUrl}</a>
+                            ) : (
+                              <a href={url} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300">{url}</a>
+                            )}
+                          </div>
+                        ) : null}
+                      </li>
+                    )
+                  })}
+                </ol>
               </div>
             </CardContent>
           </Card>

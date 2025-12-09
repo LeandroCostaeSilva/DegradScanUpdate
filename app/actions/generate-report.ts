@@ -1,8 +1,8 @@
 "use server"
 
-import { generateText } from "ai"
-import { google } from "@ai-sdk/google"
 import { supabaseServer } from "@/lib/supabase-server"
+import { getOpenRouterApiKey, getForceAI } from "@/lib/env"
+import { fetchOpenRouterReportDeep } from "@/lib/openrouter"
 import { headers } from "next/headers"
 
 interface DegradationProduct {
@@ -24,35 +24,44 @@ export async function generateDegradationReport(substanceName: string): Promise<
   const userIP = forwardedFor ? forwardedFor.split(",")[0] : headersList.get("x-real-ip") || "unknown"
 
   try {
-    // 1. Primeiro, verificar se já temos dados no banco
+    const forceAI = getForceAI()
+    // 1. Se estiver forçando IA, pular banco e cache
+    if (forceAI && getOpenRouterApiKey()) {
+      console.log("🧠 Forçando OpenRouter (ignorando banco)")
+      const report = await generateReportFromAI(substanceName)
+      await saveReportToDatabase(substanceName, report)
+      await logSearchHistory(substanceName, substanceName, userIP, userAgent)
+      return report
+    }
+
+    // 2. Primeiro, verificar se já temos dados no banco
     console.log(`Buscando dados para: ${substanceName}`)
     const existingData = await getSubstanceFromDatabase(substanceName)
 
     if (existingData) {
       console.log("Dados encontrados no banco de dados")
-      // Registrar a pesquisa no histórico
       await logSearchHistory(substanceName, substanceName, userIP, userAgent)
       return existingData
     }
 
     console.log("Dados não encontrados, consultando AI...")
 
-    // 2. Se não temos dados, gerar via AI (se API key disponível)
+    // 3. Se não temos dados, gerar via AI (se API key disponível)
     let report: DegradationReport
 
-    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    if (getOpenRouterApiKey()) {
       report = await generateReportFromAI(substanceName)
-      console.log("Relatório gerado via AI")
+      console.log("Relatório gerado via OpenRouter")
     } else {
       report = getMockData(substanceName)
       console.log("Usando dados mock (API key não disponível)")
     }
 
-    // 3. Salvar os dados no banco para futuras consultas
+    // 4. Salvar os dados no banco para futuras consultas
     await saveReportToDatabase(substanceName, report)
     console.log("Dados salvos no banco de dados")
 
-    // 4. Registrar a pesquisa no histórico
+    // 5. Registrar a pesquisa no histórico
     await logSearchHistory(substanceName, substanceName, userIP, userAgent)
     console.log("Pesquisa registrada no histórico")
 
@@ -143,42 +152,8 @@ async function logSearchHistory(
 }
 
 async function generateReportFromAI(substanceName: string): Promise<DegradationReport> {
-  const prompt = `Como um especialista em química analítica sênior, me apresente de forma objetiva em formato de tabela os produtos de degradação da ${substanceName}, organizando como atributos os nomes das substâncias formadas, a via de degradação química, as condições ambientais que a favorecem e os dados de toxicidade relatados na literatura científica para esse produto de degradação formado. Ao final, embaixo da tabela, apresente as referências bibliográficas dessas informações apresentadas.
-
-Por favor, formate sua resposta em JSON com a seguinte estrutura:
-{
-  "products": [
-    {
-      "substance": "nome da substância formada",
-      "degradationRoute": "via de degradação química",
-      "environmentalConditions": "condições ambientais que favorecem",
-      "toxicityData": "dados de toxicidade relatados"
-    }
-  ],
-  "references": [
-    "referência bibliográfica 1",
-    "referência bibliográfica 2"
-  ]
-}`
-
-  const { text } = await generateText({
-    model: google("gemini-2.0-flash-exp", {
-      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    }),
-    prompt,
-    temperature: 0.3,
-  })
-
-  // Try to extract JSON from the response
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (jsonMatch) {
-    const jsonStr = jsonMatch[0]
-    const parsedData = JSON.parse(jsonStr)
-    return parsedData
-  }
-
-  // Fallback: parse the text response manually
-  return parseTextResponse(text, substanceName)
+  const result = await fetchOpenRouterReportDeep(substanceName)
+  return result
 }
 
 function getMockData(substanceName: string): DegradationReport {
