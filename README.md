@@ -1,33 +1,60 @@
-# DegradScan PRD
+# DegradScan
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Aplicação especializada para pesquisa e documentação de produtos de degradação de fármacos, com integração a IA (OpenRouter) e bases científicas (PubChem, Crossref, PubMed). Inclui cache e persistência via Supabase, além de exportação estática para deploy no GitHub Pages.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/leandrocostaesilvas-projects/v0-degrad-scan-prd)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/u1DrrumA9o6)
+## Principais Recursos
+- Busca por substância e geração de relatório de produtos de degradação (IA via OpenRouter)
+- Cache e banco de dados (Supabase) para respostas rápidas e histórico
+- Referências bibliográficas com título, autores, periódico/ano e link do PubMed
+- Autocomplete de nomes químicos (PubChem Autocomplete)
+- Página de propriedades físico-químicas e sinônimos (PubChem PUG REST)
+- Autenticação com e-mail e senha (Supabase Auth), páginas de Login/Signup e fluxo protegido
+- Export estático e deploy automático pelo GitHub Pages (GitHub Actions)
 
-## Overview
+## Requisitos
+- Node.js 20+
+- Conta e projeto Supabase
+- Chave da OpenRouter (para IA)
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Variáveis de Ambiente
+Crie `.env.local` na raiz:
 
-## Deployment
+```
+NEXT_PUBLIC_SUPABASE_URL="https://<SEU-PROJETO>.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="<ANON-KEY>"
+SUPABASE_URL="https://<SEU-PROJETO>.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="<SERVICE-ROLE-KEY>"
+OPEN_ROUTER_API_KEY="<SUA-CHAVE-OPENROUTER>"
+OPEN_ROUTER_MODEL="anthropic/claude-3.5-sonnet"
+DEGRADSCAN_FORCE_AI="false"
+```
 
-Your project is live at:
+## Scripts
+- `npm install` — instala dependências
+- `npm run dev` — desenvolvimento em `http://localhost:3000/`
+- `npm run build` — build de produção
+- `npx next export` — exporta site estático para pasta `out/`
 
-**[https://vercel.com/leandrocostaesilvas-projects/v0-degrad-scan-prd](https://vercel.com/leandrocostaesilvas-projects/v0-degrad-scan-prd)**
+## Fluxo de Uso
+1. Acesso inicial direciona para `/login`
+2. Cadastro em `/signup` (e-mail + senha) → redireciona para `/login`
+3. Login em `/login` → redireciona para `/`
+4. Pesquise substâncias (autocomplete PubChem) e gere relatório da IA
+5. Abra “Gerar dados físico-químicos” para ver propriedades e sinônimos
 
-## Build your app
+## Integrações
+- OpenRouter Chat Completions: geração de JSON estruturado para tabela de degradação
+- Supabase RPC e tabelas: cache, logs, substâncias, produtos, referências, histórico
+- PubChem PUG REST: `Name→CID`, propriedades, sinônimos
+- Crossref/PubMed: enriquecimento de referências e link para PubMed
 
-Continue building your app on:
+## Deploy no GitHub Pages
+- Workflow: `.github/workflows/deploy.yml`
+- Build e export automáticos em push para `main`
+- Base path: `NEXT_PUBLIC_BASE_PATH=/DegradScanUpdate`
+- Conteúdo publicado a partir de `out/`
 
-**[https://v0.dev/chat/projects/u1DrrumA9o6](https://v0.dev/chat/projects/u1DrrumA9o6)**
+## Observações
+- Não commit de credenciais: `.env*` já ignorado por `.gitignore`
+- Para suporte a imagens em Pages, `images.unoptimized: true` em `next.config.js`
 
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
-
-## Perfil do desenvolvedor:
-[![Leandro Viana](https://media.licdn.com/dms/image/v2/C4E03AQHfGptVFnWfUg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1541546765710?e=1761782400&v=beta&t=o-zDUCl5gX4AyYEZdKV0QKyn7l4QdAoppf0g0MzaCio)](https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile)
