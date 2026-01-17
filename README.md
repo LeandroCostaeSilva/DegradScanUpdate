@@ -37,7 +37,7 @@ DEGRADSCAN_FORCE_AI="false"
 
 ## Fluxo de Uso
 1. Acesso inicial direciona para `/login`
-2. Cadastro em `/signup` (e-mail + senha) → redireciona para `/login`
+2. Cadastro em `/signup` (e-mail + senha) → login automático e redirecionamento para `/` (sem necessidade de confirmação de e-mail)
 3. Login em `/login` → redireciona para `/`
 4. Pesquise substâncias (autocomplete PubChem) e gere relatório da IA
 5. Abra “Gerar dados físico-químicos” para ver propriedades e sinônimos

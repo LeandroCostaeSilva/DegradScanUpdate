@@ -26,14 +26,20 @@ export default function SignupPage() {
     setLoading(true)
     setError(null)
     setSuccess(null)
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({ email, password })
     setLoading(false)
     if (error) {
       setError(error.message)
       return
     }
     setSuccess("Cadastro realizado com sucesso.")
-    setTimeout(() => router.replace("/login"), 1500)
+    
+    // Se o Supabase retornar sessão imediatamente (email confirmation desativado), redirecionar direto para home
+    if (data.session) {
+      setTimeout(() => router.replace("/"), 1500)
+    } else {
+      setTimeout(() => router.replace("/login"), 1500)
+    }
   }
 
   return (
