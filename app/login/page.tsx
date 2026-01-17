@@ -28,10 +28,16 @@ export default function LoginPage() {
     if (!email || !password) return
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    let errorMsg: string | null = null
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) errorMsg = error.message
+    } catch (e: any) {
+      errorMsg = "Serviço de autenticação indisponível. Tente novamente em alguns instantes."
+    }
     setLoading(false)
-    if (error) {
-      setError(error.message)
+    if (errorMsg) {
+      setError(errorMsg)
       return
     }
     router.replace("/")
@@ -42,7 +48,8 @@ export default function LoginPage() {
     setInfo(null)
     try {
       // reenviar e-mail de confirmação de cadastro
-      const { error } = await supabase.auth.resend({ type: "signup", email })
+      const redirect = `${window.location.origin}/auth/callback`
+      const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: redirect } as any })
       if (error) {
         setError(error.message)
       } else {

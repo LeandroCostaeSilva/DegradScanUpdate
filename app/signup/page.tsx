@@ -32,8 +32,8 @@ export default function SignupPage() {
       setError(error.message)
       return
     }
-    setSuccess("Cadastro realizado. Faça login para acessar.")
-    setTimeout(() => router.replace("/login"), 1200)
+    setSuccess("Cadastro realizado com sucesso.")
+    setTimeout(() => router.replace("/login"), 1500)
   }
 
   return (
@@ -96,4 +96,3 @@ export default function SignupPage() {
     </div>
   )
 }
-

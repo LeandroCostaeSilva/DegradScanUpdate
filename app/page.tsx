@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,6 +41,7 @@ export default function DegradScanApp() {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [selectedSuggestion, setSelectedSuggestion] = useState<string>("")
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const resultsRef = useRef<HTMLDivElement | null>(null)
 
   const handleSearch = async () => {
     const term = selectedSuggestion || searchTerm
@@ -146,6 +147,11 @@ export default function DegradScanApp() {
     router.replace("/login")
   }
   useEffect(() => {
+    if (report && resultsRef.current) {
+      resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [report])
+  useEffect(() => {
     const controller = new AbortController()
     const run = async () => {
       const q = searchTerm.trim()
@@ -228,11 +234,11 @@ export default function DegradScanApp() {
               P&D Farmacêutico
             </Badge>
           </div>
-          <div className="absolute right-0 top-0 flex items-center gap-3">
+          <div className="md:absolute md:right-0 md:top-0 flex items-center gap-3 mt-4 md:mt-0 justify-center">
             {userEmail ? (
               <>
-                <span className="text-slate-400 text-sm">{userEmail}</span>
-                <Button variant="outline" className="border-slate-600 text-slate-300" onClick={handleLogout}>Sair</Button>
+                <span className="text-slate-400 text-sm max-w-[50vw] truncate">{userEmail}</span>
+                <Button variant="outline" className="border-slate-600 text-slate-300 w-auto" onClick={handleLogout}>Sair</Button>
               </>
             ) : (
               <Link href="/login" className="text-blue-400 hover:text-blue-300 text-sm">Entrar</Link>
@@ -260,19 +266,19 @@ export default function DegradScanApp() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Input
                 placeholder="Ex: Paracetamol, Ibuprofeno, Ácido Acetilsalicílico..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="flex-1 bg-slate-900/50 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                className="flex-1 w-full bg-slate-900/50 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSearch}
                 disabled={isLoading || !(selectedSuggestion || searchTerm.trim())}
-                className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+                className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg w-full sm:w-auto"
               >
                 {isLoading ? (
                   <>
@@ -345,6 +351,7 @@ export default function DegradScanApp() {
 
         {/* Results Section */}
         {report && (
+          <div ref={resultsRef} id="results">
           <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm shadow-2xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -358,33 +365,35 @@ export default function DegradScanApp() {
                   Produtos de degradação identificados e suas características
                 </CardDescription>
               </div>
-              <Button
-                onClick={handleDownloadPDF}
-                disabled={isPdfGenerating}
-                variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent"
-              >
-                {isPdfGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Gerar PDF
-                  </>
-                )}
-              </Button>
-              <Link
-                href={`/propriedades?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                prefetch={false}
-                className="ml-3 px-4 py-2 border border-slate-600 text-slate-300 rounded-lg hover:bg-slate-700"
-              >
-                Gerar dados físico-químicos
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center">
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={isPdfGenerating}
+                  variant="outline"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto"
+                >
+                  {isPdfGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      Gerar PDF
+                    </>
+                  )}
+                </Button>
+                <Link
+                  href={`/propriedades?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  prefetch={false}
+                  className="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg hover:bg-slate-700 w-full sm:w-auto text-center"
+                >
+                  Gerar dados físico-químicos
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto mb-8 rounded-lg border border-slate-700">
@@ -490,6 +499,7 @@ export default function DegradScanApp() {
               </div>
             </CardContent>
           </Card>
+          </div>
         )}
 
         {/* Footer */}
