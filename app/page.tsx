@@ -393,6 +393,15 @@ export default function DegradScanApp() {
                 >
                   Gerar dados físico-químicos
                 </Link>
+                <Link
+                  href={`/excipientes?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  prefetch={false}
+                  className="px-4 py-2 border border-purple-500/50 text-purple-300 rounded-lg hover:bg-purple-500/20 w-full sm:w-auto text-center"
+                >
+                  Excipientes e adjuvantes farmacotécnicos
+                </Link>
               </div>
             </CardHeader>
             <CardContent>
