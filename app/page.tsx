@@ -373,12 +373,14 @@ export default function DegradScanApp() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col xl:flex-row gap-2 xl:gap-3 w-full lg:w-auto">
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                 <Button
                   onClick={handleDownloadPDF}
                   disabled={isPdfGenerating}
                   variant="outline"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto flex-1 xl:flex-none"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full"
                 >
                   {isPdfGenerating ? (
                     <>
@@ -395,7 +397,7 @@ export default function DegradScanApp() {
 
                 <Button
                   variant="outline"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto flex-1 xl:flex-none"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full"
                   asChild
                 >
                   <Link
@@ -410,26 +412,7 @@ export default function DegradScanApp() {
 
                 <Button
                   variant="outline"
-                  className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 bg-transparent w-full sm:w-auto flex-1 xl:flex-none"
-                  asChild
-                >
-                  <Link
-                    href={`/excipientes?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    prefetch={false}
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Excipientes
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <Button
-                  variant="outline"
-                  className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 bg-transparent w-full sm:w-auto"
+                  className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 bg-transparent w-full"
                   asChild
                 >
                   <Link
