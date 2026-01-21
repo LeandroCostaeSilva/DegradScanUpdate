@@ -12,7 +12,7 @@ export async function getExcipients(substanceName: string): Promise<ExcipientRep
     // Fallback básico em caso de erro
     return {
       excipients: [],
-      references: ["Erro ao consultar serviço de inteligência artificial. Tente novamente."]
+      references: [`Erro ao consultar serviço de inteligência artificial: ${(error as Error).message}`]
     }
   }
 }

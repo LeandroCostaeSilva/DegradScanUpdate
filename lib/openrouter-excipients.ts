@@ -57,7 +57,6 @@ export async function fetchOpenRouterExcipients(substanceName: string): Promise<
       { role: "user", content: buildExcipientPrompt(substanceName) },
     ],
     temperature: 0.2,
-    response_format: { type: "json_object" },
     max_tokens: 4000,
   }
 
