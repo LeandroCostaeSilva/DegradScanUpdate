@@ -384,25 +384,37 @@ export default function DegradScanApp() {
                     </>
                   )}
                 </Button>
-                <Link
-                  href={`/propriedades?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  prefetch={false}
-                  className="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg hover:bg-slate-700 w-full sm:w-auto text-center"
+
+                <Button
+                  variant="outline"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto"
+                  asChild
                 >
-                  Gerar dados físico-químicos
-                </Link>
-                <Link
-                  href={`/excipientes?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  prefetch={false}
-                  className="px-4 py-2 border border-purple-500/50 text-purple-300 rounded-lg hover:bg-purple-500/20 w-full sm:w-auto text-center flex items-center justify-center gap-2"
+                  <Link
+                    href={`/propriedades?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    prefetch={false}
+                  >
+                    Gerar dados físico-químicos
+                  </Link>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 bg-transparent w-full sm:w-auto"
+                  asChild
                 >
-                  <Sparkles className="h-3 w-3" />
-                  Excipientes
-                </Link>
+                  <Link
+                    href={`/excipientes?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    prefetch={false}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Excipientes
+                  </Link>
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
