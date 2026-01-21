@@ -353,7 +353,7 @@ export default function DegradScanApp() {
         {report && (
           <div ref={resultsRef} id="results">
           <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm shadow-2xl">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div>
                 <CardTitle className="flex items-center gap-3 text-slate-100">
                   <div className="p-2 bg-emerald-500/20 rounded-lg">
@@ -361,11 +361,11 @@ export default function DegradScanApp() {
                   </div>
                   Relatório de Degradação - {searchTerm}
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-slate-400 mt-1">
                   Produtos de degradação identificados e suas características
                 </CardDescription>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   onClick={handleDownloadPDF}
                   disabled={isPdfGenerating}
