@@ -365,12 +365,12 @@ export default function DegradScanApp() {
                   Produtos de degradação identificados e suas características
                 </CardDescription>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
+              <div className="flex flex-col xl:flex-row gap-2 xl:gap-3 w-full lg:w-auto">
                 <Button
                   onClick={handleDownloadPDF}
                   disabled={isPdfGenerating}
                   variant="outline"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto flex-1 xl:flex-none"
                 >
                   {isPdfGenerating ? (
                     <>
@@ -387,7 +387,7 @@ export default function DegradScanApp() {
 
                 <Button
                   variant="outline"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent w-full sm:w-auto flex-1 xl:flex-none"
                   asChild
                 >
                   <Link
@@ -402,7 +402,7 @@ export default function DegradScanApp() {
 
                 <Button
                   variant="outline"
-                  className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 bg-transparent w-full sm:w-auto"
+                  className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 bg-transparent w-full sm:w-auto flex-1 xl:flex-none"
                   asChild
                 >
                   <Link
