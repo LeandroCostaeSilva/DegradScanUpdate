@@ -43,6 +43,9 @@ export default function DegradScanApp() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const resultsRef = useRef<HTMLDivElement | null>(null)
 
+  const buildProvider = process.env.NEXT_PUBLIC_DEPLOY_PROVIDER || ""
+  const buildSha = (process.env.NEXT_PUBLIC_BUILD_SHA || "").slice(0, 7)
+
   const handleSearch = async () => {
     const term = selectedSuggestion || searchTerm
     if (!term.trim()) return
@@ -364,6 +367,11 @@ export default function DegradScanApp() {
                 <CardDescription className="text-slate-400 mt-1">
                   Produtos de degradação identificados e suas características
                 </CardDescription>
+                {(buildProvider || buildSha) && (
+                  <div className="mt-2 text-xs text-slate-500">
+                    build: {buildProvider || "unknown"}{buildSha ? `@${buildSha}` : ""}
+                  </div>
+                )}
               </div>
               <div className="flex flex-col xl:flex-row gap-2 xl:gap-3 w-full lg:w-auto">
                 <Button
@@ -418,6 +426,23 @@ export default function DegradScanApp() {
               </div>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Button
+                  variant="outline"
+                  className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 bg-transparent w-full sm:w-auto"
+                  asChild
+                >
+                  <Link
+                    href={`/excipientes?name=${encodeURIComponent(selectedSuggestion || searchTerm || "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    prefetch={false}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Excipientes e adjuvantes farmacotécnicos
+                  </Link>
+                </Button>
+              </div>
               <div className="overflow-x-auto mb-8 rounded-lg border border-slate-700">
                 <table className="w-full border-collapse">
                   <thead>
