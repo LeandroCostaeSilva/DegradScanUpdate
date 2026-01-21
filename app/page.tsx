@@ -398,9 +398,10 @@ export default function DegradScanApp() {
                   target="_blank"
                   rel="noopener noreferrer"
                   prefetch={false}
-                  className="px-4 py-2 border border-purple-500/50 text-purple-300 rounded-lg hover:bg-purple-500/20 w-full sm:w-auto text-center"
+                  className="px-4 py-2 border border-purple-500/50 text-purple-300 rounded-lg hover:bg-purple-500/20 w-full sm:w-auto text-center flex items-center justify-center gap-2"
                 >
-                  Excipientes e adjuvantes farmacotécnicos
+                  <Sparkles className="h-3 w-3" />
+                  Excipientes
                 </Link>
               </div>
             </CardHeader>
