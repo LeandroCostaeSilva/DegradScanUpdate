@@ -265,7 +265,7 @@ export default function DegradScanApp() {
               )}
             </CardTitle>
             <CardDescription className="text-slate-400">
-              Digite o nome do fármaco conforme DCB ou o nome da substância conforme CAS Number
+              Digite a nomeclatura do fármaco de acordo com a DCB, CAS Number ou IUPAC e selecione:
             </CardDescription>
           </CardHeader>
           <CardContent>
