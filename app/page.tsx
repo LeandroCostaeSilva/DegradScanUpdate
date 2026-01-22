@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Search, Download, FileText, Loader2, Sparkles, Zap } from "lucide-react"
+import { Search, Download, FileText, Loader2, Sparkles, Zap, Fingerprint, TestTubes, Beaker } from "lucide-react"
 import { MoleculeLogo } from "./components/MoleculeLogo"
 import { supabase } from "@/lib/supabase"
 import { generateDegradationReportDefinitive } from "./actions/generate-report-definitive"
@@ -247,6 +247,50 @@ export default function DegradScanApp() {
               <Link href="/login" className="text-blue-400 hover:text-blue-300 text-sm">Entrar</Link>
             )}
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm shadow-xl hover:bg-slate-800/55 transition-colors">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-slate-100 flex items-center gap-3">
+                <div className="p-2 bg-blue-500/15 rounded-lg border border-blue-500/20">
+                  <Fingerprint className="h-5 w-5 text-blue-300" />
+                </div>
+                Identidade Química
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                Estrutura, propriedades físico-químicas e referências técnicas para identificação do fármaco.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm shadow-xl hover:bg-slate-800/55 transition-colors">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-slate-100 flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/15 rounded-lg border border-emerald-500/20">
+                  <TestTubes className="h-5 w-5 text-emerald-300" />
+                </div>
+                Degradação por estresse e dados toxicológicos
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                Rotas de degradação, condições ambientais e dados toxicológicos associados aos produtos formados.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm shadow-xl hover:bg-slate-800/55 transition-colors">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-slate-100 flex items-center gap-3">
+                <div className="p-2 bg-purple-500/15 rounded-lg border border-purple-500/20">
+                  <Beaker className="h-5 w-5 text-purple-300" />
+                </div>
+                Excipientes e Adjuvantes farmacotécnicos
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                Sugestões de excipientes comuns, funções farmacotécnicas e notas de compatibilidade para formulação.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </div>
 
         {/* Search Section */}
