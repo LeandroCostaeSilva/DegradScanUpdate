@@ -195,8 +195,10 @@ export default function LoginPage() {
             <span className="text-sm">LinkedIn</span>
           </a>
         </div>
-        <div className="text-sm text-slate-400">
-          contato: <a href="mailto:degradscan@gmail.com" className="text-blue-400 hover:text-blue-300">degradscan@gmail.com</a>
+        <div className="text-sm text-slate-400 inline-flex items-center gap-2">
+          <Mail className="h-4 w-4" />
+          <span>Contato:</span>
+          <a href="mailto:degradscan@gmail.com" className="text-blue-400 hover:text-blue-300">degradscan@gmail.com</a>
         </div>
       </div>
       </div>
