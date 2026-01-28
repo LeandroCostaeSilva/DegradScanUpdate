@@ -168,26 +168,31 @@ export default function LoginPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="mt-10 flex items-center justify-center gap-4 text-slate-300">
+      <div className="mt-10 flex flex-col items-center justify-center gap-3 text-slate-300">
         <span className="text-sm">Desenvolvedor</span>
-        <a
-          href="https://github.com/LeandroCostaeSilva"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 hover:text-blue-400"
-        >
-          <Github className="h-4 w-4" />
-          <span className="text-sm">GitHub</span>
-        </a>
-        <a
-          href="https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 hover:text-blue-400"
-        >
-          <Linkedin className="h-4 w-4" />
-          <span className="text-sm">LinkedIn</span>
-        </a>
+        <div className="flex items-center justify-center gap-4">
+          <a
+            href="https://github.com/LeandroCostaeSilva"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 hover:text-blue-400"
+          >
+            <Github className="h-4 w-4" />
+            <span className="text-sm">GitHub</span>
+          </a>
+          <a
+            href="https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 hover:text-blue-400"
+          >
+            <Linkedin className="h-4 w-4" />
+            <span className="text-sm">LinkedIn</span>
+          </a>
+        </div>
+        <div className="text-sm text-slate-400">
+          contato: <a href="mailto:degradscan@gmail.com" className="text-blue-400 hover:text-blue-300">degradscan@gmail.com</a>
+        </div>
       </div>
     </div>
   )
