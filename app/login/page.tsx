@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import { MoleculeLogo } from "../components/MoleculeLogo"
 
 export default function LoginPage() {
   const router = useRouter()
+  const sp = useSearchParams()
+  const disableRedirect = sp.get("stay") === "1"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -20,10 +22,11 @@ export default function LoginPage() {
   const [info, setInfo] = useState<string | null>(null)
 
   useEffect(() => {
+    if (disableRedirect) return
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) router.replace("/")
     })
-  }, [router])
+  }, [router, disableRedirect])
 
   const handleLogin = async () => {
     if (!email || !password) return
@@ -62,14 +65,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 overflow-hidden flex flex-col">
       <div
         className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%239C92AC' fillOpacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       ></div>
-      <div className="container mx-auto max-w-md">
+      <div className="relative z-10 flex-1 flex flex-col">
+        <div className="container mx-auto max-w-md flex-1 flex flex-col justify-center">
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-4">
             <div className="scale-75 sm:scale-90">
@@ -167,8 +171,9 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-      <div className="mt-10 flex flex-col items-center justify-center gap-3 text-slate-300">
+        </div>
+
+        <div className="mt-auto pt-10 flex flex-col items-center justify-center gap-3 text-slate-300">
         <span className="text-sm">Desenvolvedor</span>
         <div className="flex items-center justify-center gap-4">
           <a
@@ -193,6 +198,7 @@ export default function LoginPage() {
         <div className="text-sm text-slate-400">
           contato: <a href="mailto:degradscan@gmail.com" className="text-blue-400 hover:text-blue-300">degradscan@gmail.com</a>
         </div>
+      </div>
       </div>
     </div>
   )
